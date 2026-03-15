@@ -1,0 +1,21 @@
+#!/bin/bash
+# commit-msg: 验证 Conventional Commits 格式
+# 格式: <type>(<scope>): <description>
+
+MSG_FILE="$1"
+FIRST_LINE=$(grep -v '^#' "$MSG_FILE" | head -1)
+
+# 跳过空消息和合并提交
+if [ -z "$FIRST_LINE" ] || echo "$FIRST_LINE" | grep -q "^Merge "; then
+  exit 0
+fi
+
+PATTERN="^(feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert)(\([^)]+\))?: .+"
+
+if ! echo "$FIRST_LINE" | grep -qE "$PATTERN"; then
+  echo "❌ commit message 不符合 Conventional Commits 规范"
+  echo "   正确格式: <type>(<scope>): <description>"
+  echo "   允许类型: feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert"
+  echo "   示例:     feat(lang): 增加 rust 语言支持"
+  exit 1
+fi

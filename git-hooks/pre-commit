@@ -1,0 +1,25 @@
+#!/bin/bash
+# pre-commit: 对暂存的 .sh 文件运行 shellcheck 静态检查
+
+if ! command -v shellcheck &>/dev/null; then
+  echo "⚠️  shellcheck 未安装，跳过检查（可通过 brew install shellcheck 安装）"
+  exit 0
+fi
+
+FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.sh$')
+if [ -z "$FILES" ]; then
+  exit 0
+fi
+
+FAILED=0
+for FILE in $FILES; do
+  if ! shellcheck --shell=bash "$FILE"; then
+    FAILED=1
+  fi
+done
+
+if [ $FAILED -ne 0 ]; then
+  echo "❌ shellcheck 发现问题，请修复后重新提交"
+fi
+
+exit $FAILED
