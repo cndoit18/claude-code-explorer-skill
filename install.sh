@@ -52,6 +52,7 @@ mkdir -p "$HOOKS_DIR"
 cp claude-hooks/post-bash.sh "$HOOKS_DIR/"
 cp claude-hooks/post-read.sh "$HOOKS_DIR/"
 cp claude-hooks/on-stop.sh   "$HOOKS_DIR/"
+cp claude-hooks/pre-prompt.sh "$HOOKS_DIR/"
 chmod +x "$HOOKS_DIR/"*.sh
 
 echo "  ✅ Hooks 复制至：$HOOKS_DIR"
@@ -97,6 +98,15 @@ post_hooks += [
 ]
 hooks["PostToolUse"] = post_hooks
 
+# UserPromptSubmit hooks
+prompt_hooks = remove_ce(hooks.get("UserPromptSubmit", []))
+prompt_hooks += [
+    {
+        "hooks": [{"type": "command", "command": f"{hooks_dir}/pre-prompt.sh"}]
+    }
+]
+hooks["UserPromptSubmit"] = prompt_hooks
+
 # Stop hooks
 stop_hooks = remove_ce(hooks.get("Stop", []))
 stop_hooks += [
@@ -124,6 +134,7 @@ echo "  /code-explorer <文件路径或函数名>"
 echo "  或直接描述：「帮我理解 [函数名] 的执行流程」"
 echo ""
 echo "Claude Code Hooks 说明："
+echo "  UserPromptSubmit  → 检测深度分析意图，向用户确认分析范围/关注重点/详细度"
 echo "  PostToolUse(Bash) → 验证 detect_lang/find_entry/git_context 脚本输出"
 echo "  PostToolUse(Read) → 追踪文件读取数，Phase 1 上限(5个)时提醒"
 echo "  Stop              → 会话结束时输出读取统计并清理临时文件"
