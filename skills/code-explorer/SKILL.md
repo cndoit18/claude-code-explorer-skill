@@ -16,6 +16,7 @@ allowed-tools:
   - Grep
   - Glob
   - Bash
+  - Agent
 ---
 
 # 源码探索专家 (Code Explorer)
@@ -76,6 +77,8 @@ bash ${CLAUDE_SKILL_DIR}/scripts/git_context.sh <target>
 > **深度模式专属**：Phase 1 完成后，输出扫描摘要，并询问：
 > "我准备重点分析 [X, Y, Z] 这几个模块，这是你关注的范围吗？要不要调整？"
 
+**Subagent 加速（深度模式）**：当项目包含 3 个以上独立模块时，使用 `Agent(subagent_type="Explore")` **并行扫描**多个模块目录，每个 subagent 负责一个模块的结构和依赖分析。启用 subagent 时，**必须**在输出中注明 `[subagent]` 标记。
+
 **工具约束**：Phase 1 内不超过 5 个文件，只读签名和注释。
 
 ---
@@ -93,6 +96,7 @@ bash ${CLAUDE_SKILL_DIR}/scripts/git_context.sh <target>
 - 优先用 `Grep` 搜索，再用 `Read` 读取关键片段（用 offset/limit）
 - 先读函数签名和注释，按需才读实现体
 - 文件超过 10 个时，**告知用户并询问是否分步进行**
+- **多路径并行**：当需要同时追踪 2 条以上独立调用链时，使用 `Agent(subagent_type="Explore")` 并行追踪，每个 subagent 负责一条路径，最后汇总结果
 
 ---
 
@@ -157,6 +161,9 @@ bash ${CLAUDE_SKILL_DIR}/scripts/git_context.sh <target>
 ## ❓ 建议深入探索
 1. [引导性问题 1]
 2. [引导性问题 2]
+
+## ⚡ 分析方式
+[如使用了 subagent 并行分析，在此说明：并行了哪些模块/路径，节省了多少轮次]
 ```
 
 ---
@@ -168,3 +175,4 @@ bash ${CLAUDE_SKILL_DIR}/scripts/git_context.sh <target>
 - 文件数量超过 10 个时，主动告知并询问是否分步
 - 优先解释"为什么"，其次才是"是什么"
 - 语言专项策略优先于通用策略
+- 使用 subagent 时，**必须**在输出末尾的「分析方式」章节说明并行了哪些任务；快速模式不使用 subagent
